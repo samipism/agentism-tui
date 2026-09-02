@@ -33,6 +33,10 @@ var statusColors = map[string]lipgloss.Color{
 
 const neutralColor = lipgloss.Color("245")
 
+// cursorBG highlights the tree row under the cursor as a full-width band,
+// instead of a leading "> " marker.
+const cursorBG = lipgloss.Color("236")
+
 var (
 	boxStyle = lipgloss.NewStyle().Border(lipgloss.RoundedBorder())
 	dimStyle = lipgloss.NewStyle().Foreground(neutralColor)
@@ -220,7 +224,7 @@ func (m Model) View() string {
 	sidebarOuter, mainOuter := m.regionWidths()
 	innerH := m.innerHeight()
 
-	sidebar := boxStyle.Width(sidebarOuter - 2).Height(innerH).Render(clipLines(m.treeView(), innerH))
+	sidebar := boxStyle.Width(sidebarOuter - 2).Height(innerH).Render(clipLines(m.treeView(sidebarOuter-2), innerH))
 	main := boxStyle.Width(mainOuter - 2).Height(innerH).Render(scrollLines(m.mainView(mainOuter-2), m.mainScroll, innerH))
 	body := lipgloss.JoinHorizontal(lipgloss.Top, sidebar, main)
 
@@ -295,28 +299,52 @@ func (m Model) footerView() string {
 	return boxStyle.Width(m.width - 2).Height(footerContentLines).Render(hint)
 }
 
-// treeView renders the task/ticket tree, cursor, colored statuses, and each
-// task's own completion bar included.
-func (m Model) treeView() string {
-	var b strings.Builder
-	for i, r := range m.rows() {
-		cursor := "  "
-		if i == m.cursor {
-			cursor = "> "
-		}
-		indent := ""
-		if !r.isTask {
-			indent = "    "
-		}
-		fmt.Fprintf(&b, "%s%s%s %s %s", cursor, indent, r.id, r.title, styledStatus(r.status))
-		if r.isTask {
-			if bar := m.taskProgressBar(r.taskID); bar != "" {
-				fmt.Fprintf(&b, "  %s", bar)
-			}
-		}
-		b.WriteString("\n")
+// treeView renders the task/ticket tree at the given content width: each
+// row gets a branch glyph, the cursor row a full-width highlight band in
+// place of the rest, and every row is truncated to width so a long title
+// can never wrap and break the tree's shape.
+func (m Model) treeView(width int) string {
+	rows := m.rows()
+	lines := make([]string, len(rows))
+	for i, r := range rows {
+		lines[i] = m.renderRow(r, i == m.cursor, width)
 	}
-	return strings.TrimRight(b.String(), "\n")
+	return strings.Join(lines, "\n")
+}
+
+// renderRow renders one tree row: a task gets an expand/collapse arrow and
+// its own completion bar, a ticket a branch glyph one level deeper. The
+// cursor row is rendered as flat text under one full-width highlight style,
+// rather than nesting the status color inside it - lipgloss's background
+// doesn't survive an inner style's reset code otherwise.
+func (m Model) renderRow(r row, selected bool, width int) string {
+	icon := "  └ "
+	if r.isTask {
+		icon = "▸ "
+		if m.expanded[r.taskID] {
+			icon = "▾ "
+		}
+	}
+	label := icon + r.id + "  " + r.title
+	if r.isTask {
+		if bar := m.taskProgressBar(r.taskID); bar != "" {
+			label += "  " + bar
+		}
+	}
+
+	if selected {
+		// Truncate first: Style.Width alone word-wraps overflow instead of
+		// cutting it, which would split one row across two lines.
+		text := lipgloss.NewStyle().MaxWidth(width).Render(label + "  " + r.status)
+		return lipgloss.NewStyle().Background(cursorBG).Bold(true).Width(width).Render(text)
+	}
+
+	style := lipgloss.NewStyle()
+	if r.isTask {
+		style = style.Bold(true)
+	}
+	line := style.Render(label) + "  " + styledStatus(r.status)
+	return lipgloss.NewStyle().MaxWidth(width).Render(line)
 }
 
 // taskProgressBar builds the completion bar for one task, from that task's

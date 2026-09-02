@@ -3,14 +3,27 @@ package ui
 import (
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 
 	"github.com/samipism/agentism-tui/internal/store"
 )
+
+// TestMain forces a color-capable render profile: go test's stdout isn't a
+// TTY, so lipgloss would otherwise silently drop every style (including the
+// cursor row's background band) and the ANSI-dependent tests below would
+// pass or fail for the wrong reason.
+func TestMain(m *testing.M) {
+	lipgloss.SetColorProfile(termenv.ANSI256)
+	os.Exit(m.Run())
+}
 
 // ansiCode matches a terminal escape sequence, so a styled render can be
 // checked for its plain text content.
@@ -49,10 +62,10 @@ func lineWith(view, substr string) string {
 	return ""
 }
 
-// column returns id's index within line, ignoring the box-drawing border
-// characters lipgloss puts at the start of a row.
+// column returns id's index within line, ANSI style codes stripped so a
+// styled row (e.g. the cursor's highlight band) doesn't skew the offset.
 func column(line, id string) int {
-	return strings.Index(line, id)
+	return strings.Index(stripANSI(line), id)
 }
 
 func TestViewExpandShowsTicketsIndentedCollapseHidesThem(t *testing.T) {
@@ -71,6 +84,67 @@ func TestViewExpandShowsTicketsIndentedCollapseHidesThem(t *testing.T) {
 	}
 	if strings.Contains(view, "T-0002") {
 		t.Errorf("collapsed task's ticket should not appear:\n%s", view)
+	}
+	if !strings.Contains(taskLine, "▾") {
+		t.Errorf("expanded task row missing ▾ icon:\n%q", taskLine)
+	}
+	if !strings.Contains(ticketLine, "└") {
+		t.Errorf("ticket row missing └ icon:\n%q", ticketLine)
+	}
+	if collapsedLine := lineWith(view, "Task_0002"); !strings.Contains(collapsedLine, "▸") {
+		t.Errorf("collapsed task row missing ▸ icon:\n%q", collapsedLine)
+	}
+}
+
+// TestCursorRowNeverExceedsGivenWidth covers the invariant that renderRow
+// truncates before it bands: the cursor row's visible width, ANSI stripped,
+// never exceeds the width the sidebar passes in, at a normal width and at
+// the narrowest widths the layout permits.
+func TestCursorRowNeverExceedsGivenWidth(t *testing.T) {
+	m := New(fixtureProject(), "root").(Model)
+
+	for _, width := range []int{10, 15, 20, 100} {
+		lines := strings.Split(m.treeView(width), "\n")
+		cursorLine := stripANSI(lines[m.cursor])
+		if n := utf8.RuneCountInString(cursorLine); n > width {
+			t.Errorf("width %d: cursor row is %d columns wide, want <= %d:\n%q", width, n, width, cursorLine)
+		}
+	}
+}
+
+// TestLongTitleRendersAsOneTruncatedLine covers the invariant that a title
+// longer than the sidebar's width truncates instead of wrapping: treeView
+// must still emit exactly one line per row.
+func TestLongTitleRendersAsOneTruncatedLine(t *testing.T) {
+	project := fixtureProject()
+	project.Tasks[1].Title = strings.Repeat("a very long task title ", 5)
+	m := New(project, "root").(Model)
+	rows := m.rows()
+
+	for _, width := range []int{10, 15, 20} {
+		out := m.treeView(width)
+		lines := strings.Split(out, "\n")
+		if len(lines) != len(rows) {
+			t.Errorf("width %d: got %d lines for %d rows, a row wrapped:\n%s", width, len(lines), len(rows), out)
+		}
+	}
+}
+
+// TestCursorBackgroundSpansFullRowWidth covers the invariant that the
+// cursor's highlight band covers the full row width, not just the label
+// text: the rendered line must both carry the background escape sequence
+// and pad out to exactly width columns.
+func TestCursorBackgroundSpansFullRowWidth(t *testing.T) {
+	m := New(fixtureProject(), "root").(Model)
+	width := 40
+
+	lines := strings.Split(m.treeView(width), "\n")
+	cursorLine := lines[m.cursor]
+	if !strings.Contains(cursorLine, "48;5;236") {
+		t.Errorf("cursor row missing full-width background style:\n%q", cursorLine)
+	}
+	if n := utf8.RuneCountInString(stripANSI(cursorLine)); n != width {
+		t.Errorf("cursor row width = %d, want exactly %d (full-width band)", n, width)
 	}
 }
 
