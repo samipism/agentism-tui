@@ -3,7 +3,7 @@ id: T-0007
 kind: ticket
 title: Detail pane, log view, and keybindings
 task: Task_0003
-status: IN_PROGRESS
+status: DONE
 priority: 20
 tags:
   - ui
@@ -14,7 +14,8 @@ contract_hash: 8c379b03406644e5
 commits:
   - ec31fb3
   - 8974c3b
-updated_at: "2026-09-02T15:56:58Z"
+  - fa8cb48
+updated_at: "2026-09-02T16:05:46Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -46,6 +47,12 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_PROGRESS"
     summary: add scrolling (viewport-style offset) to the detail pane and log view; content longer than the box was silently clipped with no way to reach the rest
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # Detail pane, log view, and keybindings

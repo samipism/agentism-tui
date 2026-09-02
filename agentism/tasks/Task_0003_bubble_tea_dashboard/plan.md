@@ -9,7 +9,7 @@ tags:
 locked: true
 depends_on: []
 version: v0
-updated_at: "2026-09-02T13:39:24Z"
+updated_at: "2026-09-02T16:06:00Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -26,6 +26,9 @@ changelog:
   - date: 2026-09-02
     kind: updated
     summary: "Dashboard read as plain text, not a dashboard. Replaced the status-bar-plus-two-columns layout with four bordered regions (header, sidebar, main, footer), added a fixed status-to-color lookup, and added a completion bar in the header and per task row. No new library: lipgloss already covered borders and color."
+  - date: 2026-09-02
+    kind: complete
+    summary: Every ticket is DONE
 ---
 
 # Bubble Tea dashboard
