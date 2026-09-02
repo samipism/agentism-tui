@@ -2,14 +2,14 @@
 id: Task_0001
 kind: task
 title: Parse the agentism project into structs
-status: PLANNED
+status: COMPLETE
 priority: 10
 tags:
   - parser
 locked: true
 depends_on: []
 version: v0
-updated_at: "2026-09-02T10:20:34Z"
+updated_at: "2026-09-02T12:35:14Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -17,6 +17,9 @@ changelog:
   - date: 2026-09-02
     kind: locked
     summary: Planning finished
+  - date: 2026-09-02
+    kind: complete
+    summary: Every ticket is DONE
 ---
 
 # Parse the agentism project into structs

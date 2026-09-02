@@ -3,17 +3,29 @@ id: T-0003
 kind: ticket
 title: Load the activity log and compute ticket-status counts
 task: Task_0001
-status: TODO
+status: DONE
 priority: 30
-tags: [parser]
-depends_on: [T-0002]
+tags:
+  - parser
+depends_on:
+  - T-0002
 contract_hash: 58780ac705de007e
-commits: []
-updated_at: 2026-09-02T10:16:25Z
+commits:
+  - 09921bf8c8a84f17c58f549a068fe0e998a83f58
+updated_at: "2026-09-02T12:33:34Z"
 changelog:
   - date: 2026-09-02
     kind: created
     summary: Created with task Task_0001
+  - date: 2026-09-02
+    kind: "status:IN_PROGRESS"
+    summary: Selected by agentism next
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # Load the activity log and compute ticket-status counts
