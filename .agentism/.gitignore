@@ -1,0 +1,8 @@
+# Derived state. The markdown tree in agentism/ is the source of
+# truth. Everything here comes back from 'agentism reconcile'.
+state.json
+session.json
+log.jsonl
+*.tmp
+# The shim holds a path from one machine. Each machine writes its own.
+bin/

@@ -1,0 +1,72 @@
+{
+  "name": "intent",
+  "answers": [
+    {
+      "id": 1,
+      "question": "What problem does agentism-tui solve?",
+      "answer": "Checking a project's agentism plan means running many separate CLI commands (status, task list, ticket list, task show) and piecing together the state by hand. There is no single view of the plan tree and its progress. A developer or a reviewer wastes time context-switching between commands to answer a simple question: 'what is the state of this project?'",
+      "at": "2026-09-02T10:00:20Z"
+    },
+    {
+      "id": 2,
+      "question": "Who uses agentism-tui?",
+      "answer": "One user type: the developer or agent operator who already runs agentism CLI commands and wants a faster read-only view of the same data. Runs agentism-tui in a project folder to see the current phase, task tree, and ticket statuses at a glance. Already familiar with agentism concepts (INTENT, tasks, tickets, phases).",
+      "at": "2026-09-02T10:00:36Z"
+    },
+    {
+      "id": 3,
+      "question": "What can the TUI browse?",
+      "answer": "Project status and phase (like agentism status), the task and ticket tree with drill-down to a ticket's full detail (title, status, task, full contract), and the activity log (like agentism log). INTENT.md and ArchDecision.md full content are out of scope.",
+      "at": "2026-09-02T10:01:31Z"
+    },
+    {
+      "id": 4,
+      "question": "How does the user navigate the TUI?",
+      "answer": "Single dashboard, no separate screens: a status bar (phase, progress) on top, a task/ticket tree in the middle (expandable/collapsible), and a detail pane that fills when a ticket is selected. Arrow keys / j-k move selection. 'q' or Ctrl+C quits.",
+      "at": "2026-09-02T10:02:04Z"
+    },
+    {
+      "id": 5,
+      "question": "What happens if no agentism project exists in the current folder?",
+      "answer": "Print 'No agentism project found in this folder. Run \"agentism init\" first.' to stderr and exit with status code 1. No TUI is shown.",
+      "at": "2026-09-02T10:02:04Z"
+    },
+    {
+      "id": 6,
+      "question": "Does the TUI auto-refresh on data change?",
+      "answer": "No. Data is read once at launch as a snapshot. Pressing 'r' re-reads the .agentism folder and redraws the view with any changes. No background file watching.",
+      "at": "2026-09-02T10:02:21Z"
+    },
+    {
+      "id": 7,
+      "question": "Which platforms should the released binaries cover?",
+      "answer": "darwin/amd64, darwin/arm64, linux/amd64, linux/arm64. No Windows for now.",
+      "at": "2026-09-02T10:02:59Z"
+    },
+    {
+      "id": 8,
+      "question": "Scale and speed targets?",
+      "answer": "Handle up to 100 tasks and 1000 tickets. Startup and render under 200ms. Memory under 100MB for such a project.",
+      "at": "2026-09-02T10:02:59Z"
+    },
+    {
+      "id": 9,
+      "question": "What is out of scope for v1?",
+      "answer": "No writes or mutations of any kind (no accept/reject, no ticket status change, no init calls) - strictly read-only. No multi-project switching from within the running TUI (only the current working directory's project). No network or remote projects (local filesystem only). No Windows support.",
+      "at": "2026-09-02T10:04:00Z"
+    },
+    {
+      "id": 10,
+      "question": "How does agentism-tui get its data?",
+      "answer": "By shelling out to the agentism CLI (agentism status, task list, ticket list, log, etc.) and parsing its output. It never reads files under agentism/ directly, matching agentism's own rule that the CLI is the only reader/writer of the plan.",
+      "at": "2026-09-02T10:04:00Z"
+    },
+    {
+      "id": 11,
+      "question": "How does agentism-tui get its data? (revised)",
+      "answer": "Revised: The agentism CLI only runs inside a Claude Code session (or similar plugin host); it is not a standalone binary a normal user has on PATH. agentism-tui must read the agentism project folder's files directly (the markdown files with YAML frontmatter under the agentism/ folder: INTENT.md, ArchDecision.md, tasks/Task_NNNN_*/plan.md, ticket files, log) rather than shelling out to the agentism CLI.",
+      "at": "2026-09-02T10:05:25Z"
+    }
+  ],
+  "complete": false
+}
