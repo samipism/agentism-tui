@@ -3,17 +3,24 @@ id: T-0009
 kind: ticket
 title: README
 task: Task_0004
-status: TODO
+status: IN_PROGRESS
 priority: 20
-tags: [release, docs]
-depends_on: [T-0007, T-0008]
+tags:
+  - release
+  - docs
+depends_on:
+  - T-0007
+  - T-0008
 contract_hash: e1394d3a13fae418
 commits: []
-updated_at: 2026-09-02T10:19:42Z
+updated_at: "2026-09-02T16:12:38Z"
 changelog:
   - date: 2026-09-02
     kind: created
     summary: Created with task Task_0004
+  - date: 2026-09-02
+    kind: "status:IN_PROGRESS"
+    summary: Selected by agentism next
 ---
 
 # README
