@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 )
 
 // ErrNoProject is returned by Load when the project root has no
@@ -20,6 +21,29 @@ type Project struct {
 	Version string
 	Tags    []string
 	Tasks   []Task
+	Log     []LogEntry
+}
+
+// LogEntry is one line of .agentism/log.jsonl.
+type LogEntry struct {
+	At     string
+	Kind   string
+	Fields map[string]any
+}
+
+// Counts tallies every ticket across every task by status. It always has
+// one entry for each of the seven known ticket statuses.
+func (p *Project) Counts() map[string]int {
+	counts := make(map[string]int, len(validTicketStatus))
+	for status := range validTicketStatus {
+		counts[status] = 0
+	}
+	for _, task := range p.Tasks {
+		for _, ticket := range task.Tickets {
+			counts[ticket.Status]++
+		}
+	}
+	return counts
 }
 
 // Task is one agentism/tasks/Task_NNNN_<slug>/plan.md.
@@ -87,12 +111,48 @@ func Load(root string) (*Project, error) {
 		return nil, err
 	}
 
+	log, err := loadLog(root)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Project{
 		Phase:   config.Phase,
 		Version: config.Version,
 		Tags:    config.Tags,
 		Tasks:   tasks,
+		Log:     log,
 	}, nil
+}
+
+// loadLog reads .agentism/log.jsonl in file order. A missing file yields an
+// empty slice. A line that fails to parse as JSON is skipped.
+func loadLog(root string) ([]LogEntry, error) {
+	path := filepath.Join(root, ".agentism", "log.jsonl")
+	raw, err := os.ReadFile(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return []LogEntry{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	entries := []LogEntry{}
+	for _, line := range strings.Split(string(raw), "\n") {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		var fields map[string]any
+		if err := json.Unmarshal([]byte(line), &fields); err != nil {
+			continue
+		}
+		at, _ := fields["at"].(string)
+		kind, _ := fields["kind"].(string)
+		delete(fields, "at")
+		delete(fields, "kind")
+		entries = append(entries, LogEntry{At: at, Kind: kind, Fields: fields})
+	}
+	return entries, nil
 }
 
 func loadTasks(root string) ([]Task, error) {
