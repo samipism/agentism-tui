@@ -130,7 +130,7 @@ func (m Model) statusBar() string {
 	}
 
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s v%s  DONE %d/%d", m.project.Phase, m.project.Version, counts["DONE"], total)
+	fmt.Fprintf(&b, "%s %s  DONE %d/%d", m.project.Phase, m.project.Version, counts["DONE"], total)
 	for _, status := range nonDoneStatuses {
 		if n := counts[status]; n > 0 {
 			fmt.Fprintf(&b, "  %s %d", status, n)

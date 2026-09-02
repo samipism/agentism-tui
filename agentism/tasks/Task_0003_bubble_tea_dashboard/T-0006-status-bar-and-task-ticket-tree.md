@@ -3,7 +3,7 @@ id: T-0006
 kind: ticket
 title: Status bar and task/ticket tree
 task: Task_0003
-status: IN_PROGRESS
+status: IN_REVIEW
 priority: 10
 tags:
   - ui
@@ -12,7 +12,8 @@ depends_on:
 contract_hash: 8c379b03406644e5
 commits:
   - 2c4cdab
-updated_at: "2026-09-02T13:40:24Z"
+  - 22814172e90cd8feffaccd8072f1a6e1a993d9f3
+updated_at: "2026-09-02T13:47:16Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -38,6 +39,9 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_PROGRESS"
     summary: Selected by agentism next
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
 ---
 
 # Status bar and task/ticket tree
