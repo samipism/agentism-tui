@@ -3,15 +3,16 @@ id: T-0006
 kind: ticket
 title: Status bar and task/ticket tree
 task: Task_0003
-status: IN_PROGRESS
+status: DONE
 priority: 10
 tags:
   - ui
 depends_on:
   - T-0002
 contract_hash: 98405ba0ae5f4932
-commits: []
-updated_at: "2026-09-02T12:49:18Z"
+commits:
+  - 2c4cdab
+updated_at: "2026-09-02T13:07:36Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -22,6 +23,12 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_PROGRESS"
     summary: Selected by agentism next
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # Status bar and task/ticket tree

@@ -3,7 +3,7 @@ id: T-0007
 kind: ticket
 title: Detail pane, log view, and keybindings
 task: Task_0003
-status: TODO
+status: IN_PROGRESS
 priority: 20
 tags:
   - ui
@@ -12,7 +12,7 @@ depends_on:
   - T-0003
 contract_hash: 98405ba0ae5f4932
 commits: []
-updated_at: "2026-09-02T10:24:36Z"
+updated_at: "2026-09-02T13:09:46Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -20,6 +20,9 @@ changelog:
   - date: 2026-09-02
     kind: contract-change
     summary: Detail pane now renders section markdown through glamour instead of printing it raw, per the architecture update adding that library. Updated Scope, Out Of Scope, Contracts, and Design Notes; T-0007's contract restamped to match.
+  - date: 2026-09-02
+    kind: "status:IN_PROGRESS"
+    summary: Selected by agentism next
 ---
 
 # Detail pane, log view, and keybindings
