@@ -3,14 +3,15 @@ id: T-0004
 kind: ticket
 title: Find the project and print the no-project error
 task: Task_0002
-status: IN_PROGRESS
+status: DONE
 priority: 10
 tags:
   - cli
 depends_on: []
 contract_hash: f335024c7f1074f4
-commits: []
-updated_at: "2026-09-02T12:35:51Z"
+commits:
+  - 60bb7e811ca42036b8fefe5fedcfe5314e80626d
+updated_at: "2026-09-02T12:40:20Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -18,6 +19,12 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_PROGRESS"
     summary: Selected by agentism next
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # Find the project and print the no-project error

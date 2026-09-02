@@ -3,7 +3,7 @@ id: T-0006
 kind: ticket
 title: Status bar and task/ticket tree
 task: Task_0003
-status: TODO
+status: IN_PROGRESS
 priority: 10
 tags:
   - ui
@@ -11,7 +11,7 @@ depends_on:
   - T-0002
 contract_hash: 98405ba0ae5f4932
 commits: []
-updated_at: "2026-09-02T10:24:36Z"
+updated_at: "2026-09-02T12:49:18Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -19,6 +19,9 @@ changelog:
   - date: 2026-09-02
     kind: contract-change
     summary: Detail pane now renders section markdown through glamour instead of printing it raw, per the architecture update adding that library. Updated Scope, Out Of Scope, Contracts, and Design Notes; T-0007's contract restamped to match.
+  - date: 2026-09-02
+    kind: "status:IN_PROGRESS"
+    summary: Selected by agentism next
 ---
 
 # Status bar and task/ticket tree
