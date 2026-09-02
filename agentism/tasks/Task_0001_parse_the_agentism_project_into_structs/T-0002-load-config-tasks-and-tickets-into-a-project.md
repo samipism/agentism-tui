@@ -3,17 +3,22 @@ id: T-0002
 kind: ticket
 title: Load config, tasks, and tickets into a Project
 task: Task_0001
-status: TODO
+status: IN_PROGRESS
 priority: 20
-tags: [parser]
-depends_on: [T-0001]
+tags:
+  - parser
+depends_on:
+  - T-0001
 contract_hash: 58780ac705de007e
 commits: []
-updated_at: 2026-09-02T10:16:25Z
+updated_at: "2026-09-02T12:15:34Z"
 changelog:
   - date: 2026-09-02
     kind: created
     summary: Created with task Task_0001
+  - date: 2026-09-02
+    kind: "status:IN_PROGRESS"
+    summary: Selected by agentism next
 ---
 
 # Load config, tasks, and tickets into a Project

@@ -3,14 +3,15 @@ id: T-0001
 kind: ticket
 title: Frontmatter and section parser
 task: Task_0001
-status: IN_PROGRESS
+status: DONE
 priority: 10
 tags:
   - parser
 depends_on: []
 contract_hash: 58780ac705de007e
-commits: []
-updated_at: "2026-09-02T12:02:07Z"
+commits:
+  - 9910149e87488132526e16f8d6fa3cebacc4c407
+updated_at: "2026-09-02T12:13:15Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -18,6 +19,12 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_PROGRESS"
     summary: Selected by agentism next
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # Frontmatter and section parser
