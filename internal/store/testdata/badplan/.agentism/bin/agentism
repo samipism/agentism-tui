@@ -1,0 +1,54 @@
+#!/bin/sh
+# Written by agentism. It finds the installed plugin on this machine.
+# Keep it out of git: the recorded path belongs to one computer. Any
+# agentism command run through the real plugin rewrites this file, so a
+# fresh clone or a plugin update repairs it on the next command.
+set -u
+
+AGENTISM_SRC="/Users/samipism/.claude/plugins/cache/agentism/agentism/0.2.5"
+
+# A live Claude Code or Codex session always names the current plugin
+# directly. That is exact, so it wins immediately and nothing below runs.
+for env_root in "${CLAUDE_PLUGIN_ROOT:-}" "${PLUGIN_ROOT:-}"
+do
+  if [ -n "$env_root" ] && [ -f "$env_root/dist/src/index.js" ]; then
+    exec node "$env_root/dist/src/index.js" "$@"
+  fi
+done
+
+# A bare terminal has no such hint, and more than one plugin copy can sit
+# on disk after an update. Take the one written most recently, not the
+# first one found: an update always leaves a newer file behind, so this
+# corrects itself without a live session or a forced re-init.
+best=""
+best_time=-1
+for root in "$AGENTISM_SRC" \
+  "$HOME"/.claude/plugins/cache/*/agentism/* \
+  "$HOME"/.claude/plugins/marketplaces/*agentism* \
+  "${CODEX_HOME:-$HOME/.codex}"/plugins/agentism \
+  "${CODEX_HOME:-$HOME/.codex}"/plugins/*/agentism \
+  "${CODEX_HOME:-$HOME/.codex}"/plugins/cache/*/agentism/*
+do
+  f="$root/dist/src/index.js"
+  if [ -f "$f" ]; then
+    t=$(stat -f %m "$f" 2>/dev/null)
+    case "$t" in ''|*[!0-9]*) t=$(stat -c %Y "$f" 2>/dev/null) ;; esac
+    case "$t" in ''|*[!0-9]*) t=0 ;; esac
+    if [ "$t" -gt "$best_time" ]; then
+      best="$root"
+      best_time="$t"
+    fi
+  fi
+done
+if [ -n "$best" ]; then
+  exec node "$best/dist/src/index.js" "$@"
+fi
+
+if command -v agentism >/dev/null 2>&1; then
+  exec agentism "$@"
+fi
+
+echo "agentism: this computer has no agentism plugin." >&2
+echo "  Install the plugin, then run any command from the project root:" >&2
+echo "    sh <plugin-folder>/bin/agentism status" >&2
+exit 1

@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-09-02T13:27:11Z",
+  "version": "v0",
+  "phase": "EXECUTION",
+  "tasks": [
+    {
+      "id": "[unclosed",
+      "title": "broken",
+      "slug": "broken",
+      "status": "PLANNED",
+      "priority": 100,
+      "tags": [],
+      "locked": false,
+      "depends_on": [],
+      "version": "v0",
+      "path": "agentism/tasks/Task_0001_broken/plan.md",
+      "contract_hash": "a683c5c5349f6f7f",
+      "updated_at": "",
+      "tickets": [],
+      "complete": false
+    }
+  ],
+  "next_task_seq": 1,
+  "next_ticket_seq": 1
+}

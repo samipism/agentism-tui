@@ -3,7 +3,7 @@ id: T-0005
 kind: ticket
 title: Wire the loader into main and start the program
 task: Task_0002
-status: BLOCKED
+status: IN_REVIEW
 priority: 20
 tags:
   - cli
@@ -12,7 +12,7 @@ depends_on:
   - T-0002
 contract_hash: f335024c7f1074f4
 commits: []
-updated_at: "2026-09-02T12:41:38Z"
+updated_at: "2026-09-02T13:27:20Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -23,6 +23,15 @@ changelog:
   - date: 2026-09-02
     kind: "status:BLOCKED"
     summary: "Ticket work item requires handing the loaded *store.Project to 'the Bubble Tea program' and running it, but that program doesn't exist yet: Task_0003 (Bubble Tea dashboard) is still PLANNED with 0/2 tickets done, no bubbletea dependency in go.mod, no tea.Program anywhere in the codebase. Cannot implement without either building Task_0003's dashboard inside this ticket (breaks its contract) or guessing an API that isn't designed yet."
+  - date: 2026-09-02
+    kind: "status:TODO"
+    summary: Task_0003 (Bubble Tea dashboard) is now DONE; bubbletea program exists, unblocking this ticket
+  - date: 2026-09-02
+    kind: "status:IN_PROGRESS"
+    summary: Selected by agentism next
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
 ---
 
 # Wire the loader into main and start the program

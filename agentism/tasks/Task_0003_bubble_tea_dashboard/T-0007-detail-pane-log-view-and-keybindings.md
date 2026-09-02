@@ -3,7 +3,7 @@ id: T-0007
 kind: ticket
 title: Detail pane, log view, and keybindings
 task: Task_0003
-status: IN_PROGRESS
+status: DONE
 priority: 20
 tags:
   - ui
@@ -11,8 +11,9 @@ depends_on:
   - T-0006
   - T-0003
 contract_hash: 98405ba0ae5f4932
-commits: []
-updated_at: "2026-09-02T13:09:46Z"
+commits:
+  - ec31fb3
+updated_at: "2026-09-02T13:19:45Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -23,6 +24,12 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_PROGRESS"
     summary: Selected by agentism next
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # Detail pane, log view, and keybindings
