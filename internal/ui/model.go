@@ -3,14 +3,15 @@ package ui
 
 import (
 	"fmt"
+	"os"
 	"sort"
+	"strconv"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/glamour/styles"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/termenv"
 
 	"github.com/samipism/agentism-tui/internal/store"
 )
@@ -61,8 +62,10 @@ type Model struct {
 	selectedID string          // ticket ID shown in the detail pane, "" for none
 	showLog    bool
 	errMsg     string // set by a failed 'r' refresh, cleared on success
+	mainScroll int    // top line of the main region's scrolled content
 
 	width, height int
+	darkBG        bool // guessed once at startup; see darkBackground
 }
 
 // New builds the dashboard model for project, loaded from root.
@@ -74,7 +77,26 @@ func New(project *store.Project, root string) tea.Model {
 		expanded: map[string]bool{},
 		width:    defaultWidth,
 		height:   defaultHeight,
+		darkBG:   darkBackground(),
 	}
+}
+
+// darkBackground guesses whether the terminal has a dark background from
+// the COLORFGBG environment variable (set by most terminal emulators),
+// defaulting to dark when it's absent. This deliberately never queries the
+// terminal directly (as termenv.HasDarkBackground or glamour.WithAutoStyle
+// do): that query writes an OSC escape sequence and blocks reading the
+// reply from the tty, and once Bubble Tea owns stdin in raw mode for its
+// own key-reading loop, that reply gets swallowed and the read hangs the
+// whole program well past its own timeout.
+func darkBackground() bool {
+	fgbg := os.Getenv("COLORFGBG")
+	parts := strings.Split(fgbg, ";")
+	bg, err := strconv.Atoi(parts[len(parts)-1])
+	if err != nil {
+		return true // unknown: default to dark, the common terminal convention
+	}
+	return bg != 7 && bg != 15 // xterm convention: 7 and 15 are light backgrounds
 }
 
 func (m Model) Init() tea.Cmd { return nil }
@@ -106,6 +128,14 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.refresh()
 	case "l":
 		m.showLog = !m.showLog
+		m.mainScroll = 0
+	case "pgdown":
+		m.mainScroll += m.innerHeight()
+	case "pgup":
+		m.mainScroll -= m.innerHeight()
+		if m.mainScroll < 0 {
+			m.mainScroll = 0
+		}
 	case "q", "ctrl+c":
 		// Invariant: no keybinding writes a file or spawns a process. Quit
 		// only stops the program.
@@ -124,6 +154,7 @@ func (m *Model) activateCursorRow() {
 	r := rows[m.cursor]
 	if !r.isTask {
 		m.selectedID = r.id
+		m.mainScroll = 0
 		return
 	}
 	m.expanded[r.taskID] = !m.expanded[r.taskID]
@@ -187,16 +218,23 @@ func (m Model) rows() []row {
 
 func (m Model) View() string {
 	sidebarOuter, mainOuter := m.regionWidths()
-	innerH := m.bodyHeight() - 2
-	if innerH < 1 {
-		innerH = 1
-	}
+	innerH := m.innerHeight()
 
 	sidebar := boxStyle.Width(sidebarOuter - 2).Height(innerH).Render(clipLines(m.treeView(), innerH))
-	main := boxStyle.Width(mainOuter - 2).Height(innerH).Render(clipLines(m.mainView(mainOuter-2), innerH))
+	main := boxStyle.Width(mainOuter - 2).Height(innerH).Render(scrollLines(m.mainView(mainOuter-2), m.mainScroll, innerH))
 	body := lipgloss.JoinHorizontal(lipgloss.Top, sidebar, main)
 
 	return lipgloss.JoinVertical(lipgloss.Left, m.headerView(), body, m.footerView())
+}
+
+// innerHeight is the content height available inside the sidebar/main
+// boxes, border excluded. It also sizes a pgup/pgdown scroll step.
+func (m Model) innerHeight() int {
+	h := m.bodyHeight() - 2
+	if h < 1 {
+		h = 1
+	}
+	return h
 }
 
 // regionWidths splits the window into the sidebar (the tree) and the main
@@ -253,7 +291,7 @@ func (m Model) headerView() string {
 }
 
 func (m Model) footerView() string {
-	hint := "up/down move   enter/space select   r refresh   l log   q quit"
+	hint := "up/down move   enter/space select   pgup/pgdown scroll   r refresh   l log   q quit"
 	return boxStyle.Width(m.width - 2).Height(footerContentLines).Render(hint)
 }
 
@@ -318,20 +356,19 @@ func (m Model) detailView(ticket *store.Ticket, width int) string {
 		"# %s\n\n**Status:** %s  **Task:** %s\n\n## Contract\n\n%s\n\n## Work\n\n%s\n\n## Acceptance\n\n%s\n",
 		ticket.Title, ticket.Status, ticket.TaskID, ticket.Contract, ticket.Work, ticket.Acceptance,
 	)
-	return renderMarkdown(md, width)
+	return m.renderMarkdown(md, width)
 }
 
-// renderMarkdown runs md through glamour, matched to a dark or a light
-// terminal background. glamour.WithAutoStyle falls back to its plain NoTTY
-// style whenever os.Stdout isn't a real terminal (as in a test), so the
-// dark/light choice is made directly instead. A renderer error falls back
-// to the raw markdown rather than crashing the program.
-func renderMarkdown(md string, width int) string {
+// renderMarkdown runs md through glamour, matched to the terminal
+// background Model.darkBG guessed at startup (see darkBackground). A
+// renderer error falls back to the raw markdown rather than crashing the
+// program.
+func (m Model) renderMarkdown(md string, width int) string {
 	if width < 20 {
 		width = 20
 	}
 	style := styles.LightStyleConfig
-	if termenv.HasDarkBackground() {
+	if m.darkBG {
 		style = styles.DarkStyleConfig
 	}
 	// The default h2 style keeps a literal "## " prefix as a decoration;
@@ -348,11 +385,8 @@ func renderMarkdown(md string, width int) string {
 	return out
 }
 
-// logView renders Project.Log, newest entry first.
-//
-// ponytail: entries are shown in full with no scroll position tracked; a
-// window shorter than the log gets truncated by the border's clip. Add a
-// viewport offset (and a scroll key) if logs regularly outgrow the screen.
+// logView renders Project.Log, newest entry first. View scrolls it with
+// pgup/pgdown, same as the detail pane.
 func (m Model) logView() string {
 	if len(m.project.Log) == 0 {
 		return dimStyle.Render("No log entries.")
@@ -403,6 +437,15 @@ func progressBar(done, total int) string {
 // clipLines keeps only the first maxLines lines of s, so rendered content
 // never overflows a bordered box's fixed height.
 func clipLines(s string, maxLines int) string {
+	return scrollLines(s, 0, maxLines)
+}
+
+// scrollLines returns the maxLines-line window of s starting at offset, so
+// rendered content never overflows a bordered box's fixed height while
+// still reaching every line via pgup/pgdown. offset clamps to [0, the
+// largest offset that still fills the window], so scrolling can't run past
+// either end of the content.
+func scrollLines(s string, offset, maxLines int) string {
 	if maxLines <= 0 {
 		return ""
 	}
@@ -410,5 +453,11 @@ func clipLines(s string, maxLines int) string {
 	if len(lines) <= maxLines {
 		return s
 	}
-	return strings.Join(lines[:maxLines], "\n")
+	if max := len(lines) - maxLines; offset > max {
+		offset = max
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	return strings.Join(lines[offset:offset+maxLines], "\n")
 }

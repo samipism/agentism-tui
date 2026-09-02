@@ -250,3 +250,88 @@ func TestLogViewShowsLogEntries(t *testing.T) {
 		t.Errorf("log view missing log entry kind, got:\n%s", view)
 	}
 }
+
+// longLines builds a markdown bullet list of n short, distinct lines. Each
+// bullet stays on its own rendered line (unlike a plain paragraph, which
+// glamour would rewrap), so scrolling can be tested against known content.
+func longLines(n int) string {
+	var b strings.Builder
+	for i := 1; i <= n; i++ {
+		fmt.Fprintf(&b, "- Line %02d\n", i)
+	}
+	return b.String()
+}
+
+// selectFirstTicket expands the first task and selects its first ticket.
+func selectFirstTicket(m Model) Model {
+	mm, _ := m.Update(tea.KeyMsg{Type: tea.KeyEnter}) // expand
+	m = mm.(Model)
+	mm, _ = m.Update(tea.KeyMsg{Type: tea.KeyDown}) // move onto the ticket
+	m = mm.(Model)
+	mm, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter}) // select it
+	return mm.(Model)
+}
+
+func TestPageDownScrollsDetailPaneAndPageUpScrollsBack(t *testing.T) {
+	p := fixtureProject()
+	p.Tasks[0].Tickets[0].Contract = longLines(60)
+	m := selectFirstTicket(New(p, "root").(Model))
+
+	top := stripANSI(m.View())
+	if !strings.Contains(top, "Line 01") {
+		t.Fatalf("expected the top of the content before scrolling, got:\n%s", top)
+	}
+	if strings.Contains(top, "Line 60") {
+		t.Fatalf("expected the tail to be off-screen before scrolling, got:\n%s", top)
+	}
+
+	mm, _ := m.Update(tea.KeyMsg{Type: tea.KeyPgDown})
+	m = mm.(Model)
+	scrolled := stripANSI(m.View())
+	if strings.Contains(scrolled, "Line 01") {
+		t.Errorf("expected the top line to scroll out of view, got:\n%s", scrolled)
+	}
+
+	mm, _ = m.Update(tea.KeyMsg{Type: tea.KeyPgUp})
+	m = mm.(Model)
+	back := stripANSI(m.View())
+	if !strings.Contains(back, "Line 01") {
+		t.Errorf("expected page up to scroll back to the top, got:\n%s", back)
+	}
+}
+
+func TestPageDownStopsAtTheEndOfContent(t *testing.T) {
+	p := fixtureProject()
+	p.Tasks[0].Tickets[0].Contract = longLines(60)
+	m := selectFirstTicket(New(p, "root").(Model))
+
+	for i := 0; i < 30; i++ {
+		mm, _ := m.Update(tea.KeyMsg{Type: tea.KeyPgDown})
+		m = mm.(Model)
+	}
+
+	view := stripANSI(m.View())
+	if !strings.Contains(view, "Line 60") {
+		t.Errorf("expected the last line to be reachable and visible, got:\n%s", view)
+	}
+}
+
+func TestSelectingATicketResetsScroll(t *testing.T) {
+	p := fixtureProject()
+	p.Tasks[0].Tickets[0].Contract = longLines(60)
+	m := selectFirstTicket(New(p, "root").(Model))
+
+	mm, _ := m.Update(tea.KeyMsg{Type: tea.KeyPgDown})
+	m = mm.(Model)
+	if strings.Contains(stripANSI(m.View()), "Line 01") {
+		t.Fatal("expected to have scrolled away from the top")
+	}
+
+	// cursor is still on the ticket row: pressing enter re-selects it
+	mm, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	m = mm.(Model)
+
+	if !strings.Contains(stripANSI(m.View()), "Line 01") {
+		t.Errorf("expected re-selecting a ticket to reset scroll to the top, got:\n%s", stripANSI(m.View()))
+	}
+}

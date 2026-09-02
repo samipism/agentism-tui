@@ -13,7 +13,8 @@ depends_on:
 contract_hash: 8c379b03406644e5
 commits:
   - ec31fb3
-updated_at: "2026-09-02T14:02:51Z"
+  - 8974c3b
+updated_at: "2026-09-02T15:56:58Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -39,6 +40,12 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_PROGRESS"
     summary: Selected by agentism next
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:IN_PROGRESS"
+    summary: add scrolling (viewport-style offset) to the detail pane and log view; content longer than the box was silently clipped with no way to reach the rest
 ---
 
 # Detail pane, log view, and keybindings
