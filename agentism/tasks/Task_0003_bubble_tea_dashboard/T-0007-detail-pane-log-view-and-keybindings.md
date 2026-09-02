@@ -3,7 +3,7 @@ id: T-0007
 kind: ticket
 title: Detail pane, log view, and keybindings
 task: Task_0003
-status: TODO
+status: IN_PROGRESS
 priority: 20
 tags:
   - ui
@@ -13,7 +13,7 @@ depends_on:
 contract_hash: 8c379b03406644e5
 commits:
   - ec31fb3
-updated_at: "2026-09-02T13:39:30Z"
+updated_at: "2026-09-02T14:02:51Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -36,6 +36,9 @@ changelog:
   - date: 2026-09-02
     kind: "status:TODO"
     summary: contract changed
+  - date: 2026-09-02
+    kind: "status:IN_PROGRESS"
+    summary: Selected by agentism next
 ---
 
 # Detail pane, log view, and keybindings

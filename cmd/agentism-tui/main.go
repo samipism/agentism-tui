@@ -33,7 +33,7 @@ func main() {
 	// tea.WithInput pins the input to os.Stdin as given, instead of letting
 	// Bubble Tea fall back to opening /dev/tty when stdin isn't a terminal
 	// (piped input in tests, for example).
-	if _, err := tea.NewProgram(ui.New(project), tea.WithInput(os.Stdin)).Run(); err != nil {
+	if _, err := tea.NewProgram(ui.New(project, dir), tea.WithInput(os.Stdin)).Run(); err != nil {
 		fmt.Fprint(os.Stderr, errMsg(err))
 		os.Exit(1)
 	}

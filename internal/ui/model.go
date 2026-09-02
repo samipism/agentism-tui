@@ -3,9 +3,14 @@ package ui
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/glamour/styles"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 
 	"github.com/samipism/agentism-tui/internal/store"
 )
@@ -14,26 +19,79 @@ import (
 // DONE, in report order.
 var nonDoneStatuses = []string{"TODO", "IN_PROGRESS", "IN_REVIEW", "NOT_ACCEPTED", "BLOCKED", "STALE"}
 
-// Model is the dashboard's status bar and task/ticket tree.
-type Model struct {
-	project  *store.Project
-	cursor   int
-	expanded map[string]bool // task ID -> whether its tickets show
+// statusColors maps a status value to the one fixed color it always
+// renders in. A status not listed here (TODO, PLANNED, STALE, and so on)
+// gets neutralColor.
+var statusColors = map[string]lipgloss.Color{
+	"DONE":         lipgloss.Color("2"), // green
+	"IN_PROGRESS":  lipgloss.Color("3"), // yellow
+	"IN_REVIEW":    lipgloss.Color("3"), // yellow
+	"BLOCKED":      lipgloss.Color("1"), // red
+	"NOT_ACCEPTED": lipgloss.Color("1"), // red
 }
 
-// New builds the dashboard model for project.
-func New(project *store.Project) tea.Model {
-	return Model{project: project, expanded: map[string]bool{}}
+const neutralColor = lipgloss.Color("245")
+
+var (
+	boxStyle = lipgloss.NewStyle().Border(lipgloss.RoundedBorder())
+	dimStyle = lipgloss.NewStyle().Foreground(neutralColor)
+)
+
+// Layout constants. Regions are sized from the terminal window; these
+// control the fixed parts of that split.
+const (
+	defaultWidth  = 100 // used until the first tea.WindowSizeMsg arrives
+	defaultHeight = 30
+
+	headerContentLines = 2 // status line + error line
+	footerContentLines = 1 // keybinding hints
+	sidebarWidthPct    = 30
+	minRegionWidth     = 16
+)
+
+// Model is the dashboard's status bar, task/ticket tree, detail pane, and
+// log view.
+type Model struct {
+	project *store.Project
+	root    string                               // project root, for 'r' to reload
+	load    func(string) (*store.Project, error) // swappable in tests
+
+	cursor     int
+	expanded   map[string]bool // task ID -> whether its tickets show
+	selectedID string          // ticket ID shown in the detail pane, "" for none
+	showLog    bool
+	errMsg     string // set by a failed 'r' refresh, cleared on success
+
+	width, height int
+}
+
+// New builds the dashboard model for project, loaded from root.
+func New(project *store.Project, root string) tea.Model {
+	return Model{
+		project:  project,
+		root:     root,
+		load:     store.Load,
+		expanded: map[string]bool{},
+		width:    defaultWidth,
+		height:   defaultHeight,
+	}
 }
 
 func (m Model) Init() tea.Cmd { return nil }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	keyMsg, ok := msg.(tea.KeyMsg)
-	if !ok {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width, m.height = msg.Width, msg.Height
 		return m, nil
+	case tea.KeyMsg:
+		return m.handleKey(msg)
 	}
-	switch keyMsg.String() {
+	return m, nil
+}
+
+func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
 	case "up", "k":
 		if m.cursor > 0 {
 			m.cursor--
@@ -43,25 +101,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cursor++
 		}
 	case "enter", " ":
-		m.toggleCursorTask()
+		m.activateCursorRow()
+	case "r":
+		m.refresh()
+	case "l":
+		m.showLog = !m.showLog
 	case "q", "ctrl+c":
-		// Not part of T-0006's contract, but required for the binary to
-		// exit: T-0005's smoke test depends on it, and T-0007 (which owns
-		// keybindings) hasn't landed yet to restore it.
+		// Invariant: no keybinding writes a file or spawns a process. Quit
+		// only stops the program.
 		return m, tea.Quit
 	}
 	return m, nil
 }
 
-// toggleCursorTask expands or collapses the task under the cursor. It does
-// nothing when the cursor sits on a ticket row.
-func (m *Model) toggleCursorTask() {
+// activateCursorRow expands or collapses the task under the cursor, or, for
+// a ticket row, selects it for the detail pane.
+func (m *Model) activateCursorRow() {
 	rows := m.rows()
 	if m.cursor >= len(rows) {
 		return
 	}
 	r := rows[m.cursor]
 	if !r.isTask {
+		m.selectedID = r.id
 		return
 	}
 	m.expanded[r.taskID] = !m.expanded[r.taskID]
@@ -70,12 +132,32 @@ func (m *Model) toggleCursorTask() {
 	}
 }
 
-func (m Model) View() string {
-	var b strings.Builder
-	b.WriteString(m.statusBar())
-	b.WriteString("\n")
-	b.WriteString(m.treeView())
-	return b.String()
+// refresh reloads the project from root. A load error leaves the previous
+// project on screen and reports the error instead of losing it.
+func (m *Model) refresh() {
+	project, err := m.load(m.root)
+	if err != nil {
+		m.errMsg = err.Error()
+		return
+	}
+	m.project = project
+	m.errMsg = ""
+}
+
+// selectedTicket resolves selectedID against the current project, so a
+// refresh picks up any status change on the selected ticket.
+func (m Model) selectedTicket() *store.Ticket {
+	if m.selectedID == "" {
+		return nil
+	}
+	for _, task := range m.project.Tasks {
+		for i := range task.Tickets {
+			if task.Tickets[i].ID == m.selectedID {
+				return &task.Tickets[i]
+			}
+		}
+	}
+	return nil
 }
 
 // row is one visible line of the task/ticket tree.
@@ -103,7 +185,80 @@ func (m Model) rows() []row {
 	return rows
 }
 
-// treeView renders the task/ticket tree, cursor included.
+func (m Model) View() string {
+	sidebarOuter, mainOuter := m.regionWidths()
+	innerH := m.bodyHeight() - 2
+	if innerH < 1 {
+		innerH = 1
+	}
+
+	sidebar := boxStyle.Width(sidebarOuter - 2).Height(innerH).Render(clipLines(m.treeView(), innerH))
+	main := boxStyle.Width(mainOuter - 2).Height(innerH).Render(clipLines(m.mainView(mainOuter-2), innerH))
+	body := lipgloss.JoinHorizontal(lipgloss.Top, sidebar, main)
+
+	return lipgloss.JoinVertical(lipgloss.Left, m.headerView(), body, m.footerView())
+}
+
+// regionWidths splits the window into the sidebar (the tree) and the main
+// region (the detail pane or the log view), each including its own border.
+func (m Model) regionWidths() (sidebarOuter, mainOuter int) {
+	sidebarOuter = m.width * sidebarWidthPct / 100
+	if sidebarOuter < minRegionWidth {
+		sidebarOuter = minRegionWidth
+	}
+	if max := m.width - minRegionWidth; sidebarOuter > max {
+		sidebarOuter = max
+	}
+	if sidebarOuter < 4 {
+		sidebarOuter = 4
+	}
+	mainOuter = m.width - sidebarOuter
+	if mainOuter < 4 {
+		mainOuter = 4
+	}
+	return sidebarOuter, mainOuter
+}
+
+func (m Model) bodyHeight() int {
+	h := m.height - (headerContentLines + 2) - (footerContentLines + 2)
+	if h < 3 {
+		h = 3
+	}
+	return h
+}
+
+// headerView renders the phase, version, the overall completion bar, the
+// non-zero status counts, and any refresh error.
+func (m Model) headerView() string {
+	counts := m.project.Counts()
+	total := 0
+	for _, n := range counts {
+		total += n
+	}
+
+	var line1 strings.Builder
+	fmt.Fprintf(&line1, "%s %s  %s  DONE %d/%d", m.project.Phase, m.project.Version, progressBar(counts["DONE"], total), counts["DONE"], total)
+	for _, status := range nonDoneStatuses {
+		if n := counts[status]; n > 0 {
+			fmt.Fprintf(&line1, "  %s %d", styledStatus(status), n)
+		}
+	}
+
+	line2 := ""
+	if m.errMsg != "" {
+		line2 = lipgloss.NewStyle().Foreground(statusColors["BLOCKED"]).Render("error: " + m.errMsg)
+	}
+
+	return boxStyle.Width(m.width - 2).Height(headerContentLines).Render(line1.String() + "\n" + line2)
+}
+
+func (m Model) footerView() string {
+	hint := "up/down move   enter/space select   r refresh   l log   q quit"
+	return boxStyle.Width(m.width - 2).Height(footerContentLines).Render(hint)
+}
+
+// treeView renders the task/ticket tree, cursor, colored statuses, and each
+// task's own completion bar included.
 func (m Model) treeView() string {
 	var b strings.Builder
 	for i, r := range m.rows() {
@@ -115,26 +270,145 @@ func (m Model) treeView() string {
 		if !r.isTask {
 			indent = "    "
 		}
-		fmt.Fprintf(&b, "%s%s%s %s %s\n", cursor, indent, r.id, r.title, r.status)
+		fmt.Fprintf(&b, "%s%s%s %s %s", cursor, indent, r.id, r.title, styledStatus(r.status))
+		if r.isTask {
+			if bar := m.taskProgressBar(r.taskID); bar != "" {
+				fmt.Fprintf(&b, "  %s", bar)
+			}
+		}
+		b.WriteString("\n")
 	}
-	return b.String()
+	return strings.TrimRight(b.String(), "\n")
 }
 
-// statusBar renders the phase, the version, the DONE/total ticket count,
-// and any non-zero non-DONE status count.
-func (m Model) statusBar() string {
-	counts := m.project.Counts()
-	total := 0
-	for _, n := range counts {
-		total += n
-	}
-
-	var b strings.Builder
-	fmt.Fprintf(&b, "%s %s  DONE %d/%d", m.project.Phase, m.project.Version, counts["DONE"], total)
-	for _, status := range nonDoneStatuses {
-		if n := counts[status]; n > 0 {
-			fmt.Fprintf(&b, "  %s %d", status, n)
+// taskProgressBar builds the completion bar for one task, from that task's
+// own ticket counts.
+func (m Model) taskProgressBar(taskID string) string {
+	for _, task := range m.project.Tasks {
+		if task.ID != taskID {
+			continue
 		}
+		done := 0
+		for _, t := range task.Tickets {
+			if t.Status == "DONE" {
+				done++
+			}
+		}
+		return progressBar(done, len(task.Tickets))
 	}
-	return b.String()
+	return ""
+}
+
+// mainView renders whichever of the log view or the detail pane is active.
+func (m Model) mainView(width int) string {
+	if m.showLog {
+		return m.logView()
+	}
+	ticket := m.selectedTicket()
+	if ticket == nil {
+		return dimStyle.Render("Select a ticket to view its details.")
+	}
+	return m.detailView(ticket, width)
+}
+
+// detailView renders a ticket's title, status, task, and Contract/Work/
+// Acceptance text as one markdown document through glamour.
+func (m Model) detailView(ticket *store.Ticket, width int) string {
+	md := fmt.Sprintf(
+		"# %s\n\n**Status:** %s  **Task:** %s\n\n## Contract\n\n%s\n\n## Work\n\n%s\n\n## Acceptance\n\n%s\n",
+		ticket.Title, ticket.Status, ticket.TaskID, ticket.Contract, ticket.Work, ticket.Acceptance,
+	)
+	return renderMarkdown(md, width)
+}
+
+// renderMarkdown runs md through glamour, matched to a dark or a light
+// terminal background. glamour.WithAutoStyle falls back to its plain NoTTY
+// style whenever os.Stdout isn't a real terminal (as in a test), so the
+// dark/light choice is made directly instead. A renderer error falls back
+// to the raw markdown rather than crashing the program.
+func renderMarkdown(md string, width int) string {
+	if width < 20 {
+		width = 20
+	}
+	style := styles.LightStyleConfig
+	if termenv.HasDarkBackground() {
+		style = styles.DarkStyleConfig
+	}
+	// The default h2 style keeps a literal "## " prefix as a decoration;
+	// clear it so a heading renders bold/colored only, not as raw markdown.
+	style.H2.Prefix = ""
+	r, err := glamour.NewTermRenderer(glamour.WithStyles(style), glamour.WithWordWrap(width))
+	if err != nil {
+		return md
+	}
+	out, err := r.Render(md)
+	if err != nil {
+		return md
+	}
+	return out
+}
+
+// logView renders Project.Log, newest entry first.
+//
+// ponytail: entries are shown in full with no scroll position tracked; a
+// window shorter than the log gets truncated by the border's clip. Add a
+// viewport offset (and a scroll key) if logs regularly outgrow the screen.
+func (m Model) logView() string {
+	if len(m.project.Log) == 0 {
+		return dimStyle.Render("No log entries.")
+	}
+	var b strings.Builder
+	for i := len(m.project.Log) - 1; i >= 0; i-- {
+		entry := m.project.Log[i]
+		fmt.Fprintf(&b, "%s  %s", entry.At, entry.Kind)
+
+		keys := make([]string, 0, len(entry.Fields))
+		for k := range entry.Fields {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			fmt.Fprintf(&b, "  %s=%v", k, entry.Fields[k])
+		}
+		b.WriteString("\n")
+	}
+	return strings.TrimRight(b.String(), "\n")
+}
+
+// styledStatus renders a status value in its one fixed color.
+func styledStatus(status string) string {
+	color, ok := statusColors[status]
+	if !ok {
+		color = neutralColor
+	}
+	return lipgloss.NewStyle().Foreground(color).Render(status)
+}
+
+// progressBar builds the block-and-percentage string used by both the
+// header's overall bar and each task row's bar. "" for a task with no
+// tickets.
+func progressBar(done, total int) string {
+	if total == 0 {
+		return ""
+	}
+	const barWidth = 10
+	filled := done * barWidth / total
+	if filled > barWidth {
+		filled = barWidth
+	}
+	bar := strings.Repeat("█", filled) + strings.Repeat("░", barWidth-filled)
+	return fmt.Sprintf("%s %d%%", bar, done*100/total)
+}
+
+// clipLines keeps only the first maxLines lines of s, so rendered content
+// never overflows a bordered box's fixed height.
+func clipLines(s string, maxLines int) string {
+	if maxLines <= 0 {
+		return ""
+	}
+	lines := strings.Split(s, "\n")
+	if len(lines) <= maxLines {
+		return s
+	}
+	return strings.Join(lines[:maxLines], "\n")
 }

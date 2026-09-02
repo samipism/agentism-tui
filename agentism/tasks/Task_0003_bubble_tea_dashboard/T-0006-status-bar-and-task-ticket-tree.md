@@ -3,7 +3,7 @@ id: T-0006
 kind: ticket
 title: Status bar and task/ticket tree
 task: Task_0003
-status: IN_REVIEW
+status: DONE
 priority: 10
 tags:
   - ui
@@ -13,7 +13,8 @@ contract_hash: 8c379b03406644e5
 commits:
   - 2c4cdab
   - 22814172e90cd8feffaccd8072f1a6e1a993d9f3
-updated_at: "2026-09-02T13:47:16Z"
+  - ac0cbfcfb292a6f1bed832cf6abf21185fa8ea0d
+updated_at: "2026-09-02T14:02:26Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -42,6 +43,9 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_REVIEW"
     summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # Status bar and task/ticket tree
