@@ -2,7 +2,7 @@
 id: Task_0004
 kind: task
 title: Cross-platform release
-status: PLANNED
+status: ARCHIVED
 priority: 40
 tags:
   - release
@@ -10,7 +10,7 @@ tags:
 locked: true
 depends_on: []
 version: v0
-updated_at: "2026-09-02T10:20:34Z"
+updated_at: "2026-09-02T16:15:04Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -18,6 +18,12 @@ changelog:
   - date: 2026-09-02
     kind: locked
     summary: Planning finished
+  - date: 2026-09-02
+    kind: complete
+    summary: Every ticket is DONE
+  - date: 2026-09-02
+    kind: archived
+    summary: Shipped in v0
 ---
 
 # Cross-platform release

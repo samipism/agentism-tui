@@ -2,14 +2,14 @@
 id: Task_0002
 kind: task
 title: CLI entry point and project discovery
-status: COMPLETE
+status: ARCHIVED
 priority: 20
 tags:
   - cli
 locked: true
 depends_on: []
 version: v0
-updated_at: "2026-09-02T13:30:56Z"
+updated_at: "2026-09-02T16:15:04Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -20,6 +20,9 @@ changelog:
   - date: 2026-09-02
     kind: complete
     summary: Every ticket is DONE
+  - date: 2026-09-02
+    kind: archived
+    summary: Shipped in v0
 ---
 
 # CLI entry point and project discovery

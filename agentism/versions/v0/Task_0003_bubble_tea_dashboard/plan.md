@@ -2,14 +2,14 @@
 id: Task_0003
 kind: task
 title: Bubble Tea dashboard
-status: COMPLETE
+status: ARCHIVED
 priority: 30
 tags:
   - ui
 locked: true
 depends_on: []
 version: v0
-updated_at: "2026-09-02T16:06:00Z"
+updated_at: "2026-09-02T16:15:04Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -29,6 +29,9 @@ changelog:
   - date: 2026-09-02
     kind: complete
     summary: Every ticket is DONE
+  - date: 2026-09-02
+    kind: archived
+    summary: Shipped in v0
 ---
 
 # Bubble Tea dashboard

@@ -3,7 +3,7 @@ id: T-0009
 kind: ticket
 title: README
 task: Task_0004
-status: IN_PROGRESS
+status: DONE
 priority: 20
 tags:
   - release
@@ -12,8 +12,9 @@ depends_on:
   - T-0007
   - T-0008
 contract_hash: e1394d3a13fae418
-commits: []
-updated_at: "2026-09-02T16:12:38Z"
+commits:
+  - dcd7ce3ad6d8b792c99abb8cd626c956fc493cec
+updated_at: "2026-09-02T16:13:54Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -21,6 +22,12 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_PROGRESS"
     summary: Selected by agentism next
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # README
