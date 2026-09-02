@@ -3,17 +3,17 @@ id: T-0007
 kind: ticket
 title: Detail pane, log view, and keybindings
 task: Task_0003
-status: DONE
+status: TODO
 priority: 20
 tags:
   - ui
 depends_on:
   - T-0006
   - T-0003
-contract_hash: 98405ba0ae5f4932
+contract_hash: 8c379b03406644e5
 commits:
   - ec31fb3
-updated_at: "2026-09-02T13:19:45Z"
+updated_at: "2026-09-02T13:39:30Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -30,6 +30,12 @@ changelog:
   - date: 2026-09-02
     kind: "status:DONE"
     summary: Human accepted the result
+  - date: 2026-09-02
+    kind: contract-change
+    summary: "Dashboard read as plain text, not a dashboard. Replaced the status-bar-plus-two-columns layout with four bordered regions (header, sidebar, main, footer), added a fixed status-to-color lookup, and added a completion bar in the header and per task row. No new library: lipgloss already covered borders and color."
+  - date: 2026-09-02
+    kind: "status:TODO"
+    summary: contract changed
 ---
 
 # Detail pane, log view, and keybindings

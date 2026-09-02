@@ -3,7 +3,7 @@ id: T-0005
 kind: ticket
 title: Wire the loader into main and start the program
 task: Task_0002
-status: IN_REVIEW
+status: DONE
 priority: 20
 tags:
   - cli
@@ -11,8 +11,9 @@ depends_on:
   - T-0004
   - T-0002
 contract_hash: f335024c7f1074f4
-commits: []
-updated_at: "2026-09-02T13:27:20Z"
+commits:
+  - 894e725
+updated_at: "2026-09-02T13:30:52Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -32,6 +33,9 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_REVIEW"
     summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # Wire the loader into main and start the program

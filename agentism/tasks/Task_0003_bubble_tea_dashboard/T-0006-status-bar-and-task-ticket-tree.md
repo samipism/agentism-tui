@@ -3,16 +3,16 @@ id: T-0006
 kind: ticket
 title: Status bar and task/ticket tree
 task: Task_0003
-status: DONE
+status: IN_PROGRESS
 priority: 10
 tags:
   - ui
 depends_on:
   - T-0002
-contract_hash: 98405ba0ae5f4932
+contract_hash: 8c379b03406644e5
 commits:
   - 2c4cdab
-updated_at: "2026-09-02T13:07:36Z"
+updated_at: "2026-09-02T13:40:24Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -29,6 +29,15 @@ changelog:
   - date: 2026-09-02
     kind: "status:DONE"
     summary: Human accepted the result
+  - date: 2026-09-02
+    kind: contract-change
+    summary: "Dashboard read as plain text, not a dashboard. Replaced the status-bar-plus-two-columns layout with four bordered regions (header, sidebar, main, footer), added a fixed status-to-color lookup, and added a completion bar in the header and per task row. No new library: lipgloss already covered borders and color."
+  - date: 2026-09-02
+    kind: "status:TODO"
+    summary: contract changed
+  - date: 2026-09-02
+    kind: "status:IN_PROGRESS"
+    summary: Selected by agentism next
 ---
 
 # Status bar and task/ticket tree
