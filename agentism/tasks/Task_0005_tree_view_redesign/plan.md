@@ -2,14 +2,14 @@
 id: Task_0005
 kind: task
 title: Tree view redesign
-status: PLANNED
+status: COMPLETE
 priority: 10
 tags:
   - ui
 locked: true
 depends_on: []
 version: v1
-updated_at: "2026-09-02T17:02:10Z"
+updated_at: "2026-09-02T17:11:50Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -17,6 +17,9 @@ changelog:
   - date: 2026-09-02
     kind: locked
     summary: Planning finished
+  - date: 2026-09-02
+    kind: complete
+    summary: Every ticket is DONE
 ---
 
 # Tree view redesign

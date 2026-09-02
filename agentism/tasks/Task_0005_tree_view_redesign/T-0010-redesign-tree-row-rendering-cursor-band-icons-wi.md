@@ -3,14 +3,15 @@ id: T-0010
 kind: ticket
 title: "Redesign tree row rendering: cursor band, icons, width truncation"
 task: Task_0005
-status: IN_PROGRESS
+status: DONE
 priority: 10
 tags:
   - ui
 depends_on: []
 contract_hash: 46009bb78eca4776
-commits: []
-updated_at: "2026-09-02T17:04:49Z"
+commits:
+  - 270301
+updated_at: "2026-09-02T17:11:46Z"
 changelog:
   - date: 2026-09-02
     kind: created
@@ -18,6 +19,12 @@ changelog:
   - date: 2026-09-02
     kind: "status:IN_PROGRESS"
     summary: Selected by agentism next
+  - date: 2026-09-02
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
+  - date: 2026-09-02
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # Redesign tree row rendering: cursor band, icons, width truncation

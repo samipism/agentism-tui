@@ -7,9 +7,16 @@ and never spawns a process.
 
 ## Install
 
-Download a release binary for your platform from the
-[Releases page](https://github.com/samipism/agentism-tui/releases), or
-build it with Go:
+Download a release archive for your platform (darwin/linux, amd64/arm64) from the
+[Releases page](https://github.com/samipism/agentism-tui/releases), extract it,
+and put the `agentism-tui` binary on your `PATH`:
+
+```sh
+tar -xzf agentism-tui_*.tar.gz
+mv agentism-tui /usr/local/bin/
+```
+
+Or build it with Go:
 
 ```sh
 go install github.com/samipism/agentism-tui/cmd/agentism-tui@latest
