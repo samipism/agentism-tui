@@ -2,14 +2,14 @@
 id: Task_0006
 kind: task
 title: Task detail view
-status: PLANNED
+status: COMPLETE
 priority: 20
 tags:
   - ui
 locked: false
 depends_on: []
 version: v1
-updated_at: "2026-09-03T06:16:13Z"
+updated_at: "2026-09-03T06:25:43Z"
 changelog:
   - date: 2026-09-03
     kind: created
@@ -17,6 +17,9 @@ changelog:
   - date: 2026-09-03
     kind: updated
     summary: "Added Task_0006: show a task's plan.md (Goal + Contract) in the main pane on Enter/Space, mirroring the existing ticket detail view."
+  - date: 2026-09-03
+    kind: complete
+    summary: Every ticket is DONE
 ---
 
 # Task detail view

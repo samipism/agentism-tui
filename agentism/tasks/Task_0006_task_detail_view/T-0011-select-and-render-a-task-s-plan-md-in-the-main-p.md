@@ -3,14 +3,15 @@ id: T-0011
 kind: ticket
 title: Select and render a task's plan.md in the main pane
 task: Task_0006
-status: IN_PROGRESS
+status: DONE
 priority: 10
 tags:
   - ui
 depends_on: []
 contract_hash: 05e510848cac71a6
-commits: []
-updated_at: "2026-09-03T06:20:08Z"
+commits:
+  - b57d6642a120aa94754d33dfb53d25dbffd995ff
+updated_at: "2026-09-03T06:25:40Z"
 changelog:
   - date: 2026-09-03
     kind: created
@@ -18,6 +19,12 @@ changelog:
   - date: 2026-09-03
     kind: "status:IN_PROGRESS"
     summary: Selected by agentism next
+  - date: 2026-09-03
+    kind: "status:IN_REVIEW"
+    summary: Moved from IN_PROGRESS
+  - date: 2026-09-03
+    kind: "status:DONE"
+    summary: Human accepted the result
 ---
 
 # Select and render a task's plan.md in the main pane

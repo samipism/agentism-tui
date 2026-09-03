@@ -7,7 +7,15 @@ and never spawns a process.
 
 ## Install
 
-Download a release archive for your platform (darwin/linux, amd64/arm64) from the
+```sh
+curl -fsSL https://raw.githubusercontent.com/samipism/agentism-tui/main/install.sh | sh
+```
+
+Downloads the latest release for your platform (darwin/linux, amd64/arm64),
+verifies its checksum, and installs `agentism-tui` to `/usr/local/bin`
+(override with `INSTALL_DIR`).
+
+Or do it by hand: download a release archive from the
 [Releases page](https://github.com/samipism/agentism-tui/releases), extract it,
 and put the `agentism-tui` binary on your `PATH`:
 
