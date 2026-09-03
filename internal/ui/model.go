@@ -162,6 +162,7 @@ func (m *Model) activateCursorRow() {
 		return
 	}
 	m.expanded[r.taskID] = !m.expanded[r.taskID]
+	m.selectedID = r.id
 	if last := len(m.rows()) - 1; m.cursor > last {
 		m.cursor = last
 	}
@@ -190,6 +191,20 @@ func (m Model) selectedTicket() *store.Ticket {
 			if task.Tickets[i].ID == m.selectedID {
 				return &task.Tickets[i]
 			}
+		}
+	}
+	return nil
+}
+
+// selectedTask resolves selectedID against the current project's tasks, so a
+// refresh picks up any status change on the selected task.
+func (m Model) selectedTask() *store.Task {
+	if m.selectedID == "" {
+		return nil
+	}
+	for i := range m.project.Tasks {
+		if m.project.Tasks[i].ID == m.selectedID {
+			return &m.project.Tasks[i]
 		}
 	}
 	return nil
@@ -370,11 +385,13 @@ func (m Model) mainView(width int) string {
 	if m.showLog {
 		return m.logView()
 	}
-	ticket := m.selectedTicket()
-	if ticket == nil {
-		return dimStyle.Render("Select a ticket to view its details.")
+	if ticket := m.selectedTicket(); ticket != nil {
+		return m.detailView(ticket, width)
 	}
-	return m.detailView(ticket, width)
+	if task := m.selectedTask(); task != nil {
+		return m.taskDetailView(task, width)
+	}
+	return dimStyle.Render("Select a ticket to view its details.")
 }
 
 // detailView renders a ticket's title, status, task, and Contract/Work/
@@ -383,6 +400,16 @@ func (m Model) detailView(ticket *store.Ticket, width int) string {
 	md := fmt.Sprintf(
 		"# %s\n\n**Status:** %s  **Task:** %s\n\n## Contract\n\n%s\n\n## Work\n\n%s\n\n## Acceptance\n\n%s\n",
 		ticket.Title, ticket.Status, ticket.TaskID, ticket.Contract, ticket.Work, ticket.Acceptance,
+	)
+	return m.renderMarkdown(md, width)
+}
+
+// taskDetailView renders a task's title, status, priority, and Goal/
+// Contract text as one markdown document through glamour.
+func (m Model) taskDetailView(task *store.Task, width int) string {
+	md := fmt.Sprintf(
+		"# %s\n\n**Status:** %s  **Priority:** %d\n\n## Goal\n\n%s\n\n## Contract\n\n%s\n",
+		task.Title, task.Status, task.Priority, task.Goal, task.Contract,
 	)
 	return m.renderMarkdown(md, width)
 }

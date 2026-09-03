@@ -390,6 +390,71 @@ func TestPageDownStopsAtTheEndOfContent(t *testing.T) {
 	}
 }
 
+// --- T-0011: task detail view ---
+
+func TestActivateCursorRow_TaskRowSelectsAndToggles(t *testing.T) {
+	m := New(fixtureProject(), "root").(Model) // cursor starts on the first task row
+
+	m.activateCursorRow()
+
+	if !m.expanded["Task_0001"] {
+		t.Error("expected Task_0001 to be expanded")
+	}
+	if m.selectedID != "Task_0001" {
+		t.Errorf("selectedID = %q, want %q", m.selectedID, "Task_0001")
+	}
+}
+
+func TestActivateCursorRow_TicketRowUnchanged(t *testing.T) {
+	m := New(fixtureProject(), "root").(Model)
+	m.expanded["Task_0001"] = true
+	m.cursor = 1 // T-0001, right after the expanded Task_0001
+
+	m.activateCursorRow()
+
+	if m.selectedID != "T-0001" {
+		t.Errorf("selectedID = %q, want %q", m.selectedID, "T-0001")
+	}
+	if m.expanded["Task_0002"] {
+		t.Error("selecting a ticket row must not touch an unrelated task's expand state")
+	}
+}
+
+func TestMainView_ShowsTaskDetailWhenTaskSelected(t *testing.T) {
+	p := fixtureProject()
+	p.Tasks[0].Goal = "Ship the widget."
+	m := New(p, "root").(Model)
+	m.selectedID = "Task_0001"
+
+	view := stripANSI(m.View())
+
+	if !strings.Contains(view, "Ship the widget.") {
+		t.Errorf("expected task's Goal text in main pane, got:\n%s", view)
+	}
+}
+
+func TestMainView_TicketSelectionWinsOverStaleTaskID(t *testing.T) {
+	m := New(fixtureProject(), "root").(Model)
+	m.selectedID = "T-0001"
+
+	view := stripANSI(m.View())
+
+	if !strings.Contains(view, "Do the thing.") {
+		t.Errorf("expected ticket detail (not task detail or placeholder), got:\n%s", view)
+	}
+}
+
+func TestTaskDetailView_EmptyGoalAndContractRendersNoError(t *testing.T) {
+	m := New(fixtureProject(), "root").(Model)
+	task := &store.Task{ID: "Task_0009", Title: "Bare task", Status: "PLANNED"}
+
+	out := stripANSI(m.taskDetailView(task, 80))
+
+	if !strings.Contains(out, "Bare task") {
+		t.Errorf("expected task title in output, got:\n%s", out)
+	}
+}
+
 func TestSelectingATicketResetsScroll(t *testing.T) {
 	p := fixtureProject()
 	p.Tasks[0].Tickets[0].Contract = longLines(60)
