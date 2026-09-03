@@ -16,6 +16,7 @@ builds:
 archives:
   - id: agentism-tui
     formats: [tar.gz]
+    name_template: "agentism-tui_{{ .Os }}_{{ .Arch }}"
     files:
       - none*
 
